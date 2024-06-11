@@ -1,16 +1,15 @@
-package org.firstinspires.ftc.teamcode;
+package com.danpeled.swerveftclib.examples;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.button.Button;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.danpeled.swerveftclib.Swerve.SwerveCommands;
+import com.danpeled.swerveftclib.Swerve.SwerveDrive;
+import com.danpeled.swerveftclib.util.BaseDrive;
+import com.danpeled.swerveftclib.util.Location;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.teamcode.Systems.Swerve.SwerveCommands;
-import org.firstinspires.ftc.teamcode.Systems.Swerve.SwerveDrive;
-import org.firstinspires.ftc.teamcode.util.BaseDrive;
-import org.firstinspires.ftc.teamcode.util.Location;
 
 /**
  * SampleDrive class represents a sample teleoperated mode for controlling a swerve drive robot.

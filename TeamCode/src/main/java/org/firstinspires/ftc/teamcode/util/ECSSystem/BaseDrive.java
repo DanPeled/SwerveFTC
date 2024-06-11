@@ -1,12 +1,21 @@
 package org.firstinspires.ftc.teamcode.util.ECSSystem;
 
+import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.util.Location;
 
 /**
  * Abstract base class for different types of drive systems in an FTC robot.
  * It provides common methods and properties that can be used by any drive system.
  */
-public abstract class BaseDrive extends Component {
+public abstract class BaseDrive extends SubsystemBase {
+    protected HardwareMap hardwareMap;
+    protected Telemetry telemetry;
+    protected CommandOpMode robot;
+
     /**
      * Sets the power for the drive system.
      *

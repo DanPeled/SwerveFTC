@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Systems.Swerve;
 
+import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
@@ -23,27 +24,22 @@ public class SwerveDrive extends BaseDrive {
      * Maximum number of idle breaks before considering the robot stopped.
      */
     public final int MAX_IDLE_BREAK = 20;
-
     /**
      * Length of the robot (distance between front and back wheels).
      */
     public final double LENGTH = 1;
-
     /**
      * Width of the robot (distance between left and right wheels).
      */
     public final double WIDTH = 1;
-
     /**
      * Parameters for the IMU (Inertial Measurement Unit).
      */
     private final BNO055IMU.Parameters m_imuParameters = new BNO055IMU.Parameters();
-
     /**
      * Starting position of the robot.
      */
     private final Location startingPosition = new Location(0, 0);
-
     /**
      * Instance of the IMU.
      */
@@ -79,10 +75,15 @@ public class SwerveDrive extends BaseDrive {
      */
     private SwerveDriveOdometry odometry;
 
+    public SwerveDrive(CommandOpMode opMode) {
+        this.robot = opMode;
+        this.hardwareMap = robot.hardwareMap;
+        this.telemetry = robot.telemetry;
+    }
+
     /**
      * Initializes the swerve drive system.
      */
-    @Override
     public void init() {
         m_fl = new SwerveModule("fl", "flServo", hardwareMap);
         m_fr = new SwerveModule("fr", "frServo", hardwareMap);
@@ -110,7 +111,7 @@ public class SwerveDrive extends BaseDrive {
         imu.initialize(m_imuParameters);
         RobotLog.d("imu init finished");
 
-        robot.telemetry.addData("Gyro", "calibrating...");
+        telemetry.addData("Gyro", "calibrating...");
 
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
@@ -155,7 +156,7 @@ public class SwerveDrive extends BaseDrive {
      * Updates the odometry for the swerve drive system.
      */
     @Override
-    public void update() {
+    public void periodic() {
         updateOdometry();
     }
 
@@ -250,7 +251,7 @@ public class SwerveDrive extends BaseDrive {
      * @param midwayAction An optional action to perform midway through the movement.
      */
     @Override
-    public void goToLocation(Location location, GotoSettings settings, Runnable midwayAction) {
+    public void goToLocation(Location location, BaseDrive.GotoSettings settings, Runnable midwayAction) {
         // Determine the relative position of the target location
         double targetX = location.x - posX;
         double targetY = location.y - posY;

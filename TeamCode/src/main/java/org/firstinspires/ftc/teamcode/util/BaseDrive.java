@@ -1,20 +1,19 @@
-package org.firstinspires.ftc.teamcode.util.ECSSystem;
+package org.firstinspires.ftc.teamcode.util;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.util.Location;
 
 /**
  * Abstract base class for different types of drive systems in an FTC robot.
  * It provides common methods and properties that can be used by any drive system.
  */
 public abstract class BaseDrive extends SubsystemBase {
-    protected HardwareMap hardwareMap;
-    protected Telemetry telemetry;
-    protected CommandOpMode robot;
+    protected HardwareMap m_hardwareMap;
+    protected Telemetry m_telemetry;
+    protected CommandOpMode m_robot;
 
     /**
      * Sets the power for the drive system.
@@ -40,14 +39,14 @@ public abstract class BaseDrive extends SubsystemBase {
      *
      * @return The X position.
      */
-    public abstract double getPosX();
+    public abstract double getM_posX();
 
     /**
      * Gets the current Y position of the robot.
      *
      * @return The Y position.
      */
-    public abstract double getPosY();
+    public abstract double getM_posY();
 
     /**
      * Gets the current heading (orientation) of the robot.
@@ -77,7 +76,7 @@ public abstract class BaseDrive extends SubsystemBase {
      * @param power The power to use for the turn.
      */
     public void turn(double deg, double power) {
-        double targetAngle = getHeading() + deg; // zeroAngle
+        double targetAngle = getHeading() + deg;
         turnTo(targetAngle, power);
     }
 
@@ -109,7 +108,7 @@ public abstract class BaseDrive extends SubsystemBase {
     public void turnTo(double targetAngle, double targetPower) {
         double delta = getDeltaHeading(targetAngle);
         double s = (delta < 0) ? -1 : 1;
-        while (robot.opModeIsActive() && (delta * s > 0)) {
+        while (m_robot.opModeIsActive() && (delta * s > 0)) {
             delta = getDeltaHeading(targetAngle);
             double gain = 0.02;
             double power = gain * delta * targetPower;
@@ -117,11 +116,11 @@ public abstract class BaseDrive extends SubsystemBase {
 
             setPower(0, power, 0);
 
-            robot.telemetry.addData("target", targetAngle);
-            robot.telemetry.addData("current", getHeading());
-            robot.telemetry.addData("delta", delta);
-            robot.telemetry.addData("power", power);
-            robot.telemetry.update();
+            m_robot.telemetry.addData("target", targetAngle);
+            m_robot.telemetry.addData("current", getHeading());
+            m_robot.telemetry.addData("delta", delta);
+            m_robot.telemetry.addData("power", power);
+            m_robot.telemetry.update();
         }
         stopPower();
     }

@@ -11,8 +11,8 @@ public class SwerveModule {
     // Constants for motor and servo control
     private static final double TICKS_PER_REVOLUTION = 537.6; // For a typical motor with an encoder
     private static final double WHEEL_CIRCUMFERENCE = Math.PI * 0.1; // Wheel circumference in meters (example)
-    private final ServoEx m_angleServo;
-    private final DcMotorEx m_driveMotor;
+    private final ServoEx m_angleServo; // The rotation axis servo
+    private final DcMotorEx m_driveMotor; // Drive motor
 
     public SwerveModule(String driveMotorName, String angleServoName, HardwareMap hw) {
         m_driveMotor = hw.get(DcMotorEx.class, driveMotorName);

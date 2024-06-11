@@ -13,11 +13,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.util.ECSSystem.BaseDrive;
+import org.firstinspires.ftc.teamcode.util.BaseDrive;
 import org.firstinspires.ftc.teamcode.util.Location;
 
 /**
  * SwerveDrive class controls a swerve drive system for an FTC robot.
+ *
+ * @see BaseDrive
  */
 public class SwerveDrive extends BaseDrive {
     /**
@@ -39,11 +41,11 @@ public class SwerveDrive extends BaseDrive {
     /**
      * Starting position of the robot.
      */
-    private final Location startingPosition = new Location(0, 0);
+    private final Location m_startingPosition = new Location(0, 0);
     /**
      * Instance of the IMU.
      */
-    private BNO055IMU imu = null;
+    private BNO055IMU m_imu = null;
 
     /**
      * Swerve modules of the robot.
@@ -53,17 +55,17 @@ public class SwerveDrive extends BaseDrive {
     /**
      * Angle offset for the robot's orientation.
      */
-    private double angleOffset = 0;
+    private double m_angleOffset = 0;
 
     /**
      * Current X position of the robot.
      */
-    private double posX = 0;
+    private double m_posX = 0;
 
     /**
      * Current Y position of the robot.
      */
-    private double posY = 0;
+    private double m_posY = 0;
 
     /**
      * Swerve Drive Kinematics for the robot.
@@ -76,21 +78,23 @@ public class SwerveDrive extends BaseDrive {
     private SwerveDriveOdometry odometry;
 
     public SwerveDrive(CommandOpMode opMode) {
-        this.robot = opMode;
-        this.hardwareMap = robot.hardwareMap;
-        this.telemetry = robot.telemetry;
+        this.m_robot = opMode;
+        this.m_hardwareMap = m_robot.hardwareMap;
+        this.m_telemetry = m_robot.telemetry;
+
+        init();
     }
 
     /**
      * Initializes the swerve drive system.
      */
     public void init() {
-        m_fl = new SwerveModule("fl", "flServo", hardwareMap);
-        m_fr = new SwerveModule("fr", "frServo", hardwareMap);
-        m_bl = new SwerveModule("bl", "blServo", hardwareMap);
-        m_br = new SwerveModule("br", "brServo", hardwareMap);
+        m_fl = new SwerveModule("fl", "flServo", m_hardwareMap);
+        m_fr = new SwerveModule("fr", "frServo", m_hardwareMap);
+        m_bl = new SwerveModule("bl", "blServo", m_hardwareMap);
+        m_br = new SwerveModule("br", "brServo", m_hardwareMap);
 
-        initIMU(hardwareMap);
+        initIMU(m_hardwareMap);
 
         kinematics = new SwerveDriveKinematics(new Translation2d(LENGTH / 2, WIDTH / 2), new Translation2d(LENGTH / 2, -WIDTH / 2), new Translation2d(-LENGTH / 2, WIDTH / 2), new Translation2d(-LENGTH / 2, -WIDTH / 2));
 
@@ -103,27 +107,27 @@ public class SwerveDrive extends BaseDrive {
      * @param hardwareMap the hardware map
      */
     private void initIMU(HardwareMap hardwareMap) {
-        imu = hardwareMap.get(BNO055IMU.class, "imu 1");
+        m_imu = hardwareMap.get(BNO055IMU.class, "imu 1");
 
         m_imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         m_imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         RobotLog.d("imu params init start");
-        imu.initialize(m_imuParameters);
+        m_imu.initialize(m_imuParameters);
         RobotLog.d("imu init finished");
 
-        telemetry.addData("Gyro", "calibrating...");
+        m_telemetry.addData("Gyro", "calibrating...");
 
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
-        while (!imu.isGyroCalibrated() && !robot.isStopRequested() && timer.seconds() < 5) {
-            robot.sleep(50);
+        while (!m_imu.isGyroCalibrated() && !m_robot.isStopRequested() && timer.seconds() < 5) {
+            m_robot.sleep(50);
         }
-        if (imu.isGyroCalibrated()) {
-            robot.telemetry.addData("Gyro", "Done Calibrating");
+        if (m_imu.isGyroCalibrated()) {
+            m_robot.telemetry.addData("Gyro", "Done Calibrating");
             RobotLog.d("Gyro done init");
         } else {
-            robot.telemetry.addData("Gyro", "Gyro/IMU Calibration Failed");
-            RobotLog.d("Gyro failed init" + " " + imu.isGyroCalibrated() + " " + imu.isAccelerometerCalibrated() + " " + imu.isMagnetometerCalibrated());
+            m_robot.telemetry.addData("Gyro", "Gyro/IMU Calibration Failed");
+            RobotLog.d("Gyro failed init" + " " + m_imu.isGyroCalibrated() + " " + m_imu.isAccelerometerCalibrated() + " " + m_imu.isMagnetometerCalibrated());
         }
     }
 
@@ -173,7 +177,7 @@ public class SwerveDrive extends BaseDrive {
         if (!fieldOriented) {  // No field oriented (=> Robot oriented)
             setPower(x, y, turn);
         } else {
-            double phiRad = (-getHeading() + angleOffset) / 180 * Math.PI;
+            double phiRad = (-getHeading() + m_angleOffset) / 180 * Math.PI;
             double forward = y * Math.cos(phiRad) - x * Math.sin(phiRad);
             double strafe = y * Math.sin(phiRad) + x * Math.cos(phiRad);
             setPower(forward, turn, strafe);
@@ -186,8 +190,8 @@ public class SwerveDrive extends BaseDrive {
      * @return the current x position
      */
     @Override
-    public double getPosX() {
-        return posX;
+    public double getM_posX() {
+        return m_posX;
     }
 
     /**
@@ -196,8 +200,8 @@ public class SwerveDrive extends BaseDrive {
      * @return the current y position
      */
     @Override
-    public double getPosY() {
-        return posY;
+    public double getM_posY() {
+        return m_posY;
     }
 
     /**
@@ -207,8 +211,8 @@ public class SwerveDrive extends BaseDrive {
      */
     @Override
     public double getHeading() {
-        Orientation orientation = imu.getAngularOrientation();
-        return (-orientation.firstAngle + startingPosition.angle) % 360;
+        Orientation orientation = m_imu.getAngularOrientation();
+        return (-orientation.firstAngle + m_startingPosition.angle) % 360;
     }
 
     /**
@@ -227,8 +231,8 @@ public class SwerveDrive extends BaseDrive {
      */
     @Override
     public void resetOrientation(double angle) {
-        imu.initialize(m_imuParameters);
-        angleOffset = angle;
+        m_imu.initialize(m_imuParameters);
+        m_angleOffset = angle;
     }
 
     /**
@@ -239,8 +243,8 @@ public class SwerveDrive extends BaseDrive {
 
         odometry.updateWithTime(System.currentTimeMillis() * 1000, getHeadingRotation2d(), moduleStates);
 
-        posX = odometry.getPoseMeters().getX();
-        posY = odometry.getPoseMeters().getY();
+        m_posX = odometry.getPoseMeters().getX();
+        m_posY = odometry.getPoseMeters().getY();
     }
 
     /**
@@ -253,8 +257,8 @@ public class SwerveDrive extends BaseDrive {
     @Override
     public void goToLocation(Location location, BaseDrive.GotoSettings settings, Runnable midwayAction) {
         // Determine the relative position of the target location
-        double targetX = location.x - posX;
-        double targetY = location.y - posY;
+        double targetX = location.x - m_posX;
+        double targetY = location.y - m_posY;
 
         // Calculate the angle to the target location
         double targetAngle = Math.toDegrees(Math.atan2(targetY, targetX));
@@ -310,8 +314,8 @@ public class SwerveDrive extends BaseDrive {
         double lastX = 0;
         double lastY = 0;
 
-        double currentX = getPosX();
-        double currentY = getPosY();
+        double currentX = getM_posX();
+        double currentY = getM_posY();
         double deltaX = currentTarget.x - currentX;
         double deltaY = currentTarget.y - currentY;
         double startX = currentX;
@@ -324,11 +328,11 @@ public class SwerveDrive extends BaseDrive {
 
         ElapsedTime timer = new ElapsedTime();
 
-        while (robot.opModeIsActive() && (currentDist < (totalDist - currentSettings.tolerance)) && !robot.isStopRequested() && stuckTries < 15) {
+        while (m_robot.opModeIsActive() && (currentDist < (totalDist - currentSettings.tolerance)) && !m_robot.isStopRequested() && stuckTries < 15) {
             double powerToUse = currentSettings.power;
 
-            currentX = getPosX();
-            currentY = getPosY();
+            currentX = getM_posX();
+            currentY = getM_posY();
             deltaX = currentX - startX;
             deltaY = currentY - startY;
             currentDist = Math.hypot(deltaY, deltaX); // distance moved from start position.
@@ -381,7 +385,7 @@ public class SwerveDrive extends BaseDrive {
 
             if (Math.abs(currentX - lastX) < 0.02 && Math.abs(velocity) < velocityRange) {
                 stuckTries += 1;
-                returnToPosAfterStuck = new Location(getPosX(), getPosY());
+                returnToPosAfterStuck = new Location(getM_posX(), getM_posY());
             }
 
             lastX = currentX;

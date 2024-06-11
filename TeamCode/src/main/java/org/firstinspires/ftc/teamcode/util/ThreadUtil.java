@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import org.firstinspires.ftc.robotcore.external.Supplier;
-import org.firstinspires.ftc.teamcode.util.ECSSystem.Robot;
 
 /**
  * Utility class containing various helper methods.
@@ -51,7 +52,7 @@ public class ThreadUtil {
      * @param robot    The robot instance to check for stop requests and active op mode.
      * @return The created thread.
      */
-    public static Thread loopAsync(Runnable runnable, Robot robot) {
+    public static Thread loopAsync(Runnable runnable, LinearOpMode robot) {
         return doAsync(() -> {
             while (!robot.isStopRequested() && robot.opModeIsActive()) {
                 runnable.run();

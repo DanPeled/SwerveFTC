@@ -3,7 +3,8 @@ package com.danpeled.swerveftclib.Swerve;
 import com.danpeled.swerveftclib.util.BaseDrive;
 import com.danpeled.swerveftclib.util.CommandUtil.CommandFor;
 import com.danpeled.swerveftclib.util.Location;
-import com.qualcomm.robotcore.hardware.Gamepad;
+
+import java.util.function.Supplier;
 
 public class SwerveCommands {
 
@@ -11,30 +12,34 @@ public class SwerveCommands {
      * Command to set the power of the swerve drive in an oriented manner.
      */
     public static class SetPowerOriented extends CommandFor<SwerveDrive> {
+        private final Supplier<Double> m_supplierX, m_supplierY, m_supplierTurn;
         private final boolean fieldOriented;
-        private final Gamepad gamepad;
 
         /**
          * Constructs a new SetPowerOriented command.
          *
          * @param swerveDrive   The swerve drive subsystem.
-         * @param gamepad       The gamepad to control the swerve drive.
+         * @param supplierX     The supplier for the X-axis power.
+         * @param supplierY     The supplier for the Y-axis power.
+         * @param supplierTurn  The supplier for the turning power.
          * @param fieldOriented Whether the control is field-oriented.
          */
-        public SetPowerOriented(SwerveDrive swerveDrive, Gamepad gamepad, boolean fieldOriented) {
+        public SetPowerOriented(SwerveDrive swerveDrive, Supplier<Double> supplierX, Supplier<Double> supplierY, Supplier<Double> supplierTurn, boolean fieldOriented) {
             super(swerveDrive);
             this.fieldOriented = fieldOriented;
-            this.gamepad = gamepad;
+            this.m_supplierTurn = supplierTurn;
+            this.m_supplierX = supplierX;
+            this.m_supplierY = supplierY;
         }
 
         /**
-         * Executes the command to set the power of the swerve drive based on gamepad input.
+         * Executes the command to set the power of the swerve drive based on supplier input.
          */
         @Override
         public void execute() {
-            float x = gamepad.left_stick_x;
-            float y = gamepad.left_stick_y;
-            float turn = gamepad.right_stick_x;
+            double x = m_supplierX.get();
+            double y = m_supplierY.get();
+            double turn = m_supplierTurn.get();
 
             if (Math.abs(x) < 0.1) x = 0;
             if (Math.abs(y) < 0.1) y = 0;

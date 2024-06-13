@@ -29,14 +29,20 @@ public class SampleDrive extends CommandOpMode {
     @Override
     public void initialize() {
         driver = new GamepadEx(gamepad1);
+
         swerveDrive = new SwerveDrive(this);
 
         // Set the default command for the swerve drive to SetPowerOriented
-        swerveDrive.setDefaultCommand(new SwerveCommands.SetPowerOriented(swerveDrive, gamepad1, true));
+        swerveDrive.setDefaultCommand(
+                new SwerveCommands.SetPowerOriented(
+                        swerveDrive,
+                        driver::getLeftX,
+                        driver::getLeftY,
+                        driver::getRightX,
+                        true));
 
         // Map the A button on the gamepad to the GoTo command
         Button exampleButton = new GamepadButton(driver, GamepadKeys.Button.A);
-
         // Configure default settings for the GoTo command
         BaseDrive.GotoSettings defaultGoToSettings = new BaseDrive.GotoSettings.Builder()
                 .setPower(1)

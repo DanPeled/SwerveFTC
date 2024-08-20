@@ -39,14 +39,14 @@ public abstract class BaseDrive extends SubsystemBase {
      *
      * @return The X position.
      */
-    public abstract double getM_posX();
+    public abstract double getPosX();
 
     /**
      * Gets the current Y position of the robot.
      *
      * @return The Y position.
      */
-    public abstract double getM_posY();
+    public abstract double getPosY();
 
     /**
      * Gets the current heading (orientation) of the robot.

@@ -5,9 +5,6 @@
       <SelectionState runConfigName="TeamCode">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="FtcRobotController.swerveftclib">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="SwerveFTCLib">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>

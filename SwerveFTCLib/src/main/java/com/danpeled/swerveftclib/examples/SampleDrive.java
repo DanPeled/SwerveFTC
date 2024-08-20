@@ -5,11 +5,15 @@ import com.arcrobotics.ftclib.command.button.Button;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.danpeled.swerveftclib.Swerve.SwerveCommands;
 import com.danpeled.swerveftclib.Swerve.SwerveDrive;
+import com.danpeled.swerveftclib.Swerve.SwerveDriveCoefficients;
+import com.danpeled.swerveftclib.Swerve.modules.ServoExSwerveModule;
 import com.danpeled.swerveftclib.util.BaseDrive;
 import com.danpeled.swerveftclib.util.Location;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 /**
  * SampleDrive class represents a sample teleoperated mode for controlling a swerve drive robot.
@@ -19,6 +23,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  */
 @TeleOp
 public class SampleDrive extends CommandOpMode {
+    // Constants for motor and servo control
+    private static final double TICKS_PER_REVOLUTION = 537.6;  // example value
+    private static final double WHEEL_CIRCUMFERENCE = Math.PI * 0.1; // Wheel circumference in meters (example)
     SwerveDrive swerveDrive;
     GamepadEx driver;
 
@@ -30,7 +37,16 @@ public class SampleDrive extends CommandOpMode {
     public void initialize() {
         driver = new GamepadEx(gamepad1);
 
-        swerveDrive = new SwerveDrive(this);
+        swerveDrive = new SwerveDrive(this, new SwerveDriveCoefficients(
+                WHEEL_CIRCUMFERENCE, TICKS_PER_REVOLUTION,
+                new PIDFCoefficients(1, 0, 0, 0),
+                new Translation2d(5, 5),
+                new Translation2d(-5, 5),
+                new Translation2d(5, -5),
+                new Translation2d(-5, -5))
+        );
+
+        swerveDrive.init(ServoExSwerveModule.class);
 
         // Set the default command for the swerve drive to SetPowerOriented
         swerveDrive.setDefaultCommand(
@@ -56,4 +72,9 @@ public class SampleDrive extends CommandOpMode {
         // Register the swerve drive subsystem
         register(swerveDrive);
     }
+
+    @Override
+    public void run() {
+    }
+
 }

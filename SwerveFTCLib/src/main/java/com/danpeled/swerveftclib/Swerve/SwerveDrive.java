@@ -7,6 +7,7 @@ import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveKinematics;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveOdometry;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
+import com.danpeled.swerveftclib.Swerve.modules.SwerveModule;
 import com.danpeled.swerveftclib.util.BaseDrive;
 import com.danpeled.swerveftclib.util.Location;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -26,80 +27,82 @@ public class SwerveDrive extends BaseDrive {
      * Maximum number of idle breaks before considering the robot stopped.
      */
     public final int MAX_IDLE_BREAK = 20;
+
     /**
-     * Length of the robot (distance between front and back wheels).
+     * Coefficients for the swerve drive.
      */
-    public final double LENGTH = 1;
-    /**
-     * Width of the robot (distance between left and right wheels).
-     */
-    public final double WIDTH = 1;
+    public final SwerveDriveCoefficients coefficients;
+
     /**
      * Parameters for the IMU (Inertial Measurement Unit).
      */
     private final BNO055IMU.Parameters m_imuParameters = new BNO055IMU.Parameters();
+
     /**
      * Starting position of the robot.
      */
     private final Location m_startingPosition = new Location(0, 0);
     /**
+     * Swerve Drive Odometry for the robot.
+     */
+    private final SwerveDriveOdometry odometry;
+    /**
+     * Swerve Drive Kinematics for the robot.
+     */
+    private final SwerveDriveKinematics kinematics;
+    /**
      * Instance of the IMU.
      */
     private BNO055IMU m_imu = null;
-
     /**
      * Swerve modules of the robot.
      */
     private SwerveModule m_fl = null, m_fr = null, m_bl = null, m_br = null;
-
     /**
      * Angle offset for the robot's orientation.
      */
     private double m_angleOffset = 0;
-
     /**
      * Current X position of the robot.
      */
     private double m_posX = 0;
-
     /**
      * Current Y position of the robot.
      */
     private double m_posY = 0;
 
-    /**
-     * Swerve Drive Kinematics for the robot.
-     */
-    private SwerveDriveKinematics kinematics;
 
-    /**
-     * Swerve Drive Odometry for the robot.
-     */
-    private SwerveDriveOdometry odometry;
+    public SwerveDrive(CommandOpMode opMode, SwerveDriveCoefficients swerveDriveCoefficients) {
+        this.coefficients = swerveDriveCoefficients;
 
-    public SwerveDrive(CommandOpMode opMode) {
         this.m_robot = opMode;
         this.m_hardwareMap = m_robot.hardwareMap;
         this.m_telemetry = m_robot.telemetry;
 
-        init();
-    }
-
-    /**
-     * Initializes the swerve drive system.
-     */
-    public void init() {
-        m_fl = new SwerveModule("fl", "flServo", m_hardwareMap);
-        m_fr = new SwerveModule("fr", "frServo", m_hardwareMap);
-        m_bl = new SwerveModule("bl", "blServo", m_hardwareMap);
-        m_br = new SwerveModule("br", "brServo", m_hardwareMap);
-
-        initIMU(m_hardwareMap);
-
-        kinematics = new SwerveDriveKinematics(new Translation2d(LENGTH / 2, WIDTH / 2), new Translation2d(LENGTH / 2, -WIDTH / 2), new Translation2d(-LENGTH / 2, WIDTH / 2), new Translation2d(-LENGTH / 2, -WIDTH / 2));
-
+        kinematics = new SwerveDriveKinematics(getWheelPositions());
         odometry = new SwerveDriveOdometry(kinematics, getHeadingRotation2d());
     }
+
+    private Translation2d[] getWheelPositions() {
+        Translation2d frontLeft = coefficients.FRONT_LEFT_WHEEL_POSITION;
+        Translation2d frontRight = coefficients.FRONT_RIGHT_WHEEL_POSITION;
+        Translation2d backLeft = coefficients.BACK_LEFT_WHEEL_POSITION;
+        Translation2d backRight = coefficients.BACK_RIGHT_WHEEL_POSITION;
+
+        return new Translation2d[]{frontLeft, frontRight, backLeft, backRight};
+    }
+
+    public <T extends SwerveModule> void init(Class<T> clazz) {
+        try {
+            m_fr = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("fr", "frServo", m_hardwareMap, coefficients);
+            m_bl = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("bl", "blServo", m_hardwareMap, coefficients);
+            m_fl = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("fl", "flServo", m_hardwareMap, coefficients);
+            m_br = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("br", "brServo", m_hardwareMap, coefficients);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * Initializes the IMU.
@@ -190,7 +193,7 @@ public class SwerveDrive extends BaseDrive {
      * @return the current x position
      */
     @Override
-    public double getM_posX() {
+    public double getPosX() {
         return m_posX;
     }
 
@@ -200,7 +203,7 @@ public class SwerveDrive extends BaseDrive {
      * @return the current y position
      */
     @Override
-    public double getM_posY() {
+    public double getPosY() {
         return m_posY;
     }
 
@@ -314,8 +317,8 @@ public class SwerveDrive extends BaseDrive {
         double lastX = 0;
         double lastY = 0;
 
-        double currentX = getM_posX();
-        double currentY = getM_posY();
+        double currentX = getPosX();
+        double currentY = getPosY();
         double deltaX = currentTarget.x - currentX;
         double deltaY = currentTarget.y - currentY;
         double startX = currentX;
@@ -331,8 +334,8 @@ public class SwerveDrive extends BaseDrive {
         while (m_robot.opModeIsActive() && (currentDist < (totalDist - currentSettings.tolerance)) && !m_robot.isStopRequested() && stuckTries < 15) {
             double powerToUse = currentSettings.power;
 
-            currentX = getM_posX();
-            currentY = getM_posY();
+            currentX = getPosX();
+            currentY = getPosY();
             deltaX = currentX - startX;
             deltaY = currentY - startY;
             currentDist = Math.hypot(deltaY, deltaX); // distance moved from start position.
@@ -385,7 +388,7 @@ public class SwerveDrive extends BaseDrive {
 
             if (Math.abs(currentX - lastX) < 0.02 && Math.abs(velocity) < velocityRange) {
                 stuckTries += 1;
-                returnToPosAfterStuck = new Location(getM_posX(), getM_posY());
+                returnToPosAfterStuck = new Location(getPosX(), getPosY());
             }
 
             lastX = currentX;

@@ -1,4 +1,4 @@
-package com.danpeled.swerveftclib.Swerve;
+package com.danpeled.swerveftclib.examples;
 
 import com.danpeled.swerveftclib.util.BaseDrive;
 import com.danpeled.swerveftclib.util.CommandUtil.CommandFor;
@@ -11,7 +11,7 @@ public class SwerveCommands {
     /**
      * Command to set the power of the swerve drive in an oriented manner.
      */
-    public static class SetPowerOriented extends CommandFor<SwerveDrive> {
+    public static class SetPowerOriented extends CommandFor<ExampleSwerveSubsystem> {
         private final Supplier<Double> m_supplierX, m_supplierY, m_supplierTurn;
         private final boolean fieldOriented;
 
@@ -24,7 +24,7 @@ public class SwerveCommands {
          * @param supplierTurn  The supplier for the turning power.
          * @param fieldOriented Whether the control is field-oriented.
          */
-        public SetPowerOriented(SwerveDrive swerveDrive, Supplier<Double> supplierX, Supplier<Double> supplierY, Supplier<Double> supplierTurn, boolean fieldOriented) {
+        public SetPowerOriented(ExampleSwerveSubsystem swerveDrive, Supplier<Double> supplierX, Supplier<Double> supplierY, Supplier<Double> supplierTurn, boolean fieldOriented) {
             super(swerveDrive);
             this.fieldOriented = fieldOriented;
             this.m_supplierTurn = supplierTurn;
@@ -45,14 +45,14 @@ public class SwerveCommands {
             if (Math.abs(y) < 0.1) y = 0;
             if (Math.abs(turn) < 0.1) turn = 0;
 
-            subsystem.setPowerOriented(x, y, turn, fieldOriented);
+            subsystem.getDrive().setPowerOriented(x, y, turn, fieldOriented);
         }
     }
 
     /**
      * Command to move the swerve drive to a specific location.
      */
-    public static class GoTo extends CommandFor<SwerveDrive> {
+    public static class GoTo extends CommandFor<ExampleSwerveSubsystem> {
         private final Location m_location;
         private final BaseDrive.GotoSettings m_config;
         private final Runnable m_midwayAction;
@@ -65,7 +65,7 @@ public class SwerveCommands {
          * @param config       The configuration settings for the movement.
          * @param midwayAction An optional action to perform midway through the movement.
          */
-        public GoTo(SwerveDrive swerveDrive, Location location, BaseDrive.GotoSettings config, Runnable midwayAction) {
+        public GoTo(ExampleSwerveSubsystem swerveDrive, Location location, BaseDrive.GotoSettings config, Runnable midwayAction) {
             super(swerveDrive);
             this.m_location = location;
             this.m_config = config;
@@ -79,7 +79,7 @@ public class SwerveCommands {
          * @param location    The target location to move to.
          * @param config      The configuration settings for the movement.
          */
-        public GoTo(SwerveDrive swerveDrive, Location location, BaseDrive.GotoSettings config) {
+        public GoTo(ExampleSwerveSubsystem swerveDrive, Location location, BaseDrive.GotoSettings config) {
             this(swerveDrive, location, config, null);
         }
 
@@ -88,14 +88,14 @@ public class SwerveCommands {
          */
         @Override
         public void execute() {
-            subsystem.goToLocation(m_location, m_config, m_midwayAction);
+            subsystem.getDrive().goToLocation(m_location, m_config, m_midwayAction);
         }
     }
 
     /**
      * Command to turn the swerve drive to a specific angle.
      */
-    public static class TurnTo extends CommandFor<SwerveDrive> {
+    public static class TurnTo extends CommandFor<ExampleSwerveSubsystem> {
         private final double m_angle;
         private final double m_power;
 
@@ -106,7 +106,7 @@ public class SwerveCommands {
          * @param angle       The target angle to turn to.
          * @param power       The power to apply while turning.
          */
-        public TurnTo(SwerveDrive swerveDrive, double angle, double power) {
+        public TurnTo(ExampleSwerveSubsystem swerveDrive, double angle, double power) {
             super(swerveDrive);
             this.m_angle = angle;
             this.m_power = power;
@@ -117,7 +117,7 @@ public class SwerveCommands {
          */
         @Override
         public void execute() {
-            subsystem.turnTo(m_angle, m_power);
+            subsystem.getDrive().turnTo(m_angle, m_power);
         }
     }
 }

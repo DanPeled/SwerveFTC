@@ -1,11 +1,10 @@
 package com.danpeled.swerveftclib.Swerve.modules;
 
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.danpeled.swerveftclib.Swerve.SwerveDriveCoefficients;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 /**
  * Abstract class representing a swerve module in an FTC robot.
@@ -23,19 +22,37 @@ public abstract class SwerveModule {
      * Wheel circumference in meters.
      */
     protected final double WHEEL_CIRCUMFERENCE;
-    protected PIDFCoefficients pidfCoefficients;
+
+    protected SwerveModuleConfiguration m_configuration;
 
     /**
      * Constructs a new SwerveModule instance.
      *
-     * @param driveMotorName The name of the drive motor in the hardware map.
-     * @param angleServoName The name of the angle servo in the hardware map.
-     * @param hw             The hardware map used to access the robot's hardware.
-     * @param coefficients   The swerve drive coefficients.
+     * @param config       The module's config parameters.
+     * @param hw           The hardware map used to access the robot's hardware.
+     * @param coefficients The swerve drive coefficients.
      */
-    public SwerveModule(String driveMotorName, String angleServoName, HardwareMap hw, SwerveDriveCoefficients coefficients) {
+    public SwerveModule(SwerveModuleConfiguration config, SwerveDriveCoefficients coefficients, HardwareMap hw) {
         this.TICKS_PER_REVOLUTION = coefficients.TICKS_PER_REVOLUTION;
         this.WHEEL_CIRCUMFERENCE = coefficients.WHEEL_CIRCUMFERENCE;
+
+        PIDFController drivePIDF = new PIDFController(
+                coefficients.drivePIDFCoefficients.p,
+                coefficients.drivePIDFCoefficients.i,
+                coefficients.drivePIDFCoefficients.d,
+                coefficients.drivePIDFCoefficients.f
+        );
+
+        PIDFController anglePIDF = new PIDFController(
+                coefficients.anglePIDCoefficients.p,
+                coefficients.anglePIDCoefficients.i,
+                coefficients.anglePIDCoefficients.d,
+                coefficients.anglePIDCoefficients.f
+        );
+
+        m_configuration.drivePIDFController = drivePIDF;
+        m_configuration.anglePIDFController = anglePIDF;
+        this.m_configuration = config;
     }
 
     /**

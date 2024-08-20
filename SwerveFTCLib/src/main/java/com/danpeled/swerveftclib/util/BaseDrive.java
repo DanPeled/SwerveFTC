@@ -1,7 +1,6 @@
 package com.danpeled.swerveftclib.util;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -10,7 +9,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * Abstract base class for different types of drive systems in an FTC robot.
  * It provides common methods and properties that can be used by any drive system.
  */
-public abstract class BaseDrive extends SubsystemBase {
+public abstract class BaseDrive {
     protected HardwareMap m_hardwareMap;
     protected Telemetry m_telemetry;
     protected CommandOpMode m_robot;

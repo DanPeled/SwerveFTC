@@ -7,7 +7,9 @@ import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveKinematics;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveOdometry;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
+import com.danpeled.swerveftclib.Swerve.modules.AxonSwerveModule;
 import com.danpeled.swerveftclib.Swerve.modules.SwerveModule;
+import com.danpeled.swerveftclib.Swerve.modules.SwerveModuleConfiguration;
 import com.danpeled.swerveftclib.util.BaseDrive;
 import com.danpeled.swerveftclib.util.Location;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -31,7 +33,7 @@ public class SwerveDrive extends BaseDrive {
     /**
      * Coefficients for the swerve drive.
      */
-    public final SwerveDriveCoefficients coefficients;
+    public final SwerveDriveCoefficients m_coefficients;
 
     /**
      * Parameters for the IMU (Inertial Measurement Unit).
@@ -45,11 +47,11 @@ public class SwerveDrive extends BaseDrive {
     /**
      * Swerve Drive Odometry for the robot.
      */
-    private final SwerveDriveOdometry odometry;
+    private final SwerveDriveOdometry m_odometry;
     /**
      * Swerve Drive Kinematics for the robot.
      */
-    private final SwerveDriveKinematics kinematics;
+    private final SwerveDriveKinematics m_kinematics;
     /**
      * Instance of the IMU.
      */
@@ -73,31 +75,57 @@ public class SwerveDrive extends BaseDrive {
 
 
     public SwerveDrive(CommandOpMode opMode, SwerveDriveCoefficients swerveDriveCoefficients) {
-        this.coefficients = swerveDriveCoefficients;
+        this.m_coefficients = swerveDriveCoefficients;
 
         this.m_robot = opMode;
         this.m_hardwareMap = m_robot.hardwareMap;
         this.m_telemetry = m_robot.telemetry;
 
-        kinematics = new SwerveDriveKinematics(getWheelPositions());
-        odometry = new SwerveDriveOdometry(kinematics, getHeadingRotation2d());
+        m_kinematics = new SwerveDriveKinematics(getWheelPositions());
+        m_odometry = new SwerveDriveOdometry(m_kinematics, getHeadingRotation2d());
     }
 
+    /**
+     * Gets the wheel positions for the swerve drive system.
+     *
+     * @return An array of {@link Translation2d} representing the positions of the swerve drive wheels.
+     */
     private Translation2d[] getWheelPositions() {
-        Translation2d frontLeft = coefficients.FRONT_LEFT_WHEEL_POSITION;
-        Translation2d frontRight = coefficients.FRONT_RIGHT_WHEEL_POSITION;
-        Translation2d backLeft = coefficients.BACK_LEFT_WHEEL_POSITION;
-        Translation2d backRight = coefficients.BACK_RIGHT_WHEEL_POSITION;
+        Translation2d frontLeft = m_coefficients.FRONT_LEFT_WHEEL_POSITION;
+        Translation2d frontRight = m_coefficients.FRONT_RIGHT_WHEEL_POSITION;
+        Translation2d backLeft = m_coefficients.BACK_LEFT_WHEEL_POSITION;
+        Translation2d backRight = m_coefficients.BACK_RIGHT_WHEEL_POSITION;
 
         return new Translation2d[]{frontLeft, frontRight, backLeft, backRight};
     }
 
-    public <T extends SwerveModule> void init(Class<T> clazz) {
+    /**
+     * Initializes the swerve drive modules.
+     * <p>
+     * This method creates instances of the swerve modules using reflection based on the provided class type and configurations.
+     * It also ensures that necessary configurations, such as the presence of absolute encoder names, are properly set.
+     *
+     * @param <T>            The type of swerve module to be instantiated.
+     * @param clazz          The class of the swerve module to be created.
+     * @param configurations An array of configurations for each swerve module.
+     * @throws NullPointerException if an expected configuration value (e.g., absolute encoder name) is missing.
+     */
+    public <T extends SwerveModule> void init(Class<T> clazz, SwerveModuleConfiguration[] configurations) {
         try {
-            m_fr = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("fr", "frServo", m_hardwareMap, coefficients);
-            m_bl = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("bl", "blServo", m_hardwareMap, coefficients);
-            m_fl = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("fl", "flServo", m_hardwareMap, coefficients);
-            m_br = clazz.getDeclaredConstructor(String.class, String.class, HardwareMap.class, SwerveDriveCoefficients.class).newInstance("br", "brServo", m_hardwareMap, coefficients);
+            if (clazz == AxonSwerveModule.class) {
+                for (SwerveModuleConfiguration configuration : configurations) {
+                    if (configuration.absoluteEncoderName == null) {
+                        throw new NullPointerException("Expected absolute encoder name for axon but got null!");
+                    }
+                }
+            }
+
+            m_fr = clazz.getDeclaredConstructor(SwerveModuleConfiguration.class, SwerveDriveCoefficients.class, HardwareMap.class).newInstance(configurations[0], m_coefficients, m_hardwareMap);
+            m_bl = clazz.getDeclaredConstructor(SwerveModuleConfiguration.class, SwerveDriveCoefficients.class, HardwareMap.class).newInstance(configurations[1], m_coefficients, m_hardwareMap);
+            m_fl = clazz.getDeclaredConstructor(SwerveModuleConfiguration.class, SwerveDriveCoefficients.class, HardwareMap.class).newInstance(configurations[2], m_coefficients, m_hardwareMap);
+            m_br = clazz.getDeclaredConstructor(SwerveModuleConfiguration.class, SwerveDriveCoefficients.class, HardwareMap.class).newInstance(configurations[3], m_coefficients, m_hardwareMap);
+
+            initIMU(m_coefficients.imuName);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,11 +134,9 @@ public class SwerveDrive extends BaseDrive {
 
     /**
      * Initializes the IMU.
-     *
-     * @param hardwareMap the hardware map
      */
-    private void initIMU(HardwareMap hardwareMap) {
-        m_imu = hardwareMap.get(BNO055IMU.class, "imu 1");
+    private void initIMU(String imuName) {
+        m_imu = m_hardwareMap.get(BNO055IMU.class, imuName);
 
         m_imuParameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         m_imuParameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -147,7 +173,7 @@ public class SwerveDrive extends BaseDrive {
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(x, y, turn);
 
         // Convert the ChassisSpeeds to SwerveModuleStates
-        SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(chassisSpeeds);
+        SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
 
         // Normalize the speeds to make sure no wheel speed exceeds 1.0
         SwerveDriveKinematics.normalizeWheelSpeeds(moduleStates, 1.0);
@@ -162,8 +188,7 @@ public class SwerveDrive extends BaseDrive {
     /**
      * Updates the odometry for the swerve drive system.
      */
-    @Override
-    public void periodic() {
+    public void update() {
         updateOdometry();
     }
 
@@ -244,10 +269,10 @@ public class SwerveDrive extends BaseDrive {
     private void updateOdometry() {
         SwerveModuleState[] moduleStates = {m_fl.getState(), m_fr.getState(), m_bl.getState(), m_br.getState()};
 
-        odometry.updateWithTime(System.currentTimeMillis() * 1000, getHeadingRotation2d(), moduleStates);
+        m_odometry.updateWithTime(System.currentTimeMillis() * 1000, getHeadingRotation2d(), moduleStates);
 
-        m_posX = odometry.getPoseMeters().getX();
-        m_posY = odometry.getPoseMeters().getY();
+        m_posX = m_odometry.getPoseMeters().getX();
+        m_posY = m_odometry.getPoseMeters().getY();
     }
 
     /**

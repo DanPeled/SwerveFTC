@@ -6,10 +6,10 @@ import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Translation2d;
-import com.danpeled.swerveftclib.Swerve.SwerveCommands;
 import com.danpeled.swerveftclib.Swerve.SwerveDrive;
 import com.danpeled.swerveftclib.Swerve.SwerveDriveCoefficients;
-import com.danpeled.swerveftclib.Swerve.modules.ServoExSwerveModule;
+import com.danpeled.swerveftclib.Swerve.modules.AxonSwerveModule;
+import com.danpeled.swerveftclib.Swerve.modules.SwerveModuleConfiguration;
 import com.danpeled.swerveftclib.util.BaseDrive;
 import com.danpeled.swerveftclib.util.Location;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -40,18 +40,26 @@ public class SampleDrive extends CommandOpMode {
         swerveDrive = new SwerveDrive(this, new SwerveDriveCoefficients(
                 WHEEL_CIRCUMFERENCE, TICKS_PER_REVOLUTION,
                 new PIDFCoefficients(1, 0, 0, 0),
+                new PIDFCoefficients(1, 0, 0, 0),
                 new Translation2d(5, 5),
                 new Translation2d(-5, 5),
                 new Translation2d(5, -5),
-                new Translation2d(-5, -5))
+                new Translation2d(-5, -5),
+                "imu 1")
         );
 
-        swerveDrive.init(ServoExSwerveModule.class);
+        swerveDrive.init(AxonSwerveModule.class, new SwerveModuleConfiguration[]{
+                SwerveModuleConfiguration.create("fl_drive", "fl_angle", "fl_encoder"),
+                SwerveModuleConfiguration.create("fr_drive", "fr_angle", "fr_encoder"),
+                SwerveModuleConfiguration.create("bl_drive", "bl_angle", "bl_encoder"),
+                SwerveModuleConfiguration.create("br_drive", "br_angle", "br_encoder")
+        });
 
+        ExampleSwerveSubsystem swerveSubsystem = new ExampleSwerveSubsystem(swerveDrive);
         // Set the default command for the swerve drive to SetPowerOriented
-        swerveDrive.setDefaultCommand(
+        swerveSubsystem.setDefaultCommand(
                 new SwerveCommands.SetPowerOriented(
-                        swerveDrive,
+                        swerveSubsystem,
                         driver::getLeftX,
                         driver::getLeftY,
                         driver::getRightX,
@@ -59,6 +67,7 @@ public class SampleDrive extends CommandOpMode {
 
         // Map the A button on the gamepad to the GoTo command
         Button exampleButton = new GamepadButton(driver, GamepadKeys.Button.A);
+
         // Configure default settings for the GoTo command
         BaseDrive.GotoSettings defaultGoToSettings = new BaseDrive.GotoSettings.Builder()
                 .setPower(1)
@@ -67,10 +76,10 @@ public class SampleDrive extends CommandOpMode {
                 .build();
 
         // Assign the GoTo command to the A button
-        exampleButton.whenPressed(new SwerveCommands.GoTo(swerveDrive, new Location(0, 0), defaultGoToSettings));
+        exampleButton.whenPressed(new SwerveCommands.GoTo(swerveSubsystem, new Location(0, 0), defaultGoToSettings));
 
         // Register the swerve drive subsystem
-        register(swerveDrive);
+        register(swerveSubsystem);
     }
 
     @Override

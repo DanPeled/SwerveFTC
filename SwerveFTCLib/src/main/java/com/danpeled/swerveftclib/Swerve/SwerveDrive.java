@@ -47,7 +47,7 @@ public class SwerveDrive extends BaseDrive {
     /**
      * Swerve Drive Odometry for the robot.
      */
-    private final SwerveDriveOdometry m_odometry;
+    private SwerveDriveOdometry m_odometry;
     /**
      * Swerve Drive Kinematics for the robot.
      */
@@ -82,7 +82,6 @@ public class SwerveDrive extends BaseDrive {
         this.m_telemetry = m_robot.telemetry;
 
         m_kinematics = new SwerveDriveKinematics(getWheelPositions());
-        m_odometry = new SwerveDriveOdometry(m_kinematics, getHeadingRotation2d());
     }
 
     /**
@@ -154,6 +153,7 @@ public class SwerveDrive extends BaseDrive {
         if (m_imu.isGyroCalibrated()) {
             m_robot.telemetry.addData("Gyro", "Done Calibrating");
             RobotLog.d("Gyro done init");
+            m_odometry = new SwerveDriveOdometry(m_kinematics, getHeadingRotation2d());
         } else {
             m_robot.telemetry.addData("Gyro", "Gyro/IMU Calibration Failed");
             RobotLog.d("Gyro failed init" + " " + m_imu.isGyroCalibrated() + " " + m_imu.isAccelerometerCalibrated() + " " + m_imu.isMagnetometerCalibrated());

@@ -28,6 +28,7 @@ public class SampleDrive extends CommandOpMode {
     private static final double WHEEL_CIRCUMFERENCE = Math.PI * 0.1; // Wheel circumference in meters (example)
     SwerveDrive swerveDrive;
     GamepadEx driver;
+    ExampleSwerveSubsystem swerveSubsystem;
 
     /**
      * Initializes the teleoperated mode by setting up the swerve drive subsystem,
@@ -55,7 +56,7 @@ public class SampleDrive extends CommandOpMode {
                 SwerveModuleConfiguration.create("br_drive", "br_angle", "br_encoder")
         });
 
-        ExampleSwerveSubsystem swerveSubsystem = new ExampleSwerveSubsystem(swerveDrive);
+        swerveSubsystem = new ExampleSwerveSubsystem(swerveDrive);
         // Set the default command for the swerve drive to SetPowerOriented
         swerveSubsystem.setDefaultCommand(
                 new SwerveCommands.SetPowerOriented(
@@ -84,6 +85,6 @@ public class SampleDrive extends CommandOpMode {
 
     @Override
     public void run() {
+        swerveSubsystem.getDefaultCommand().schedule();
     }
-
 }
